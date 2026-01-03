@@ -20,8 +20,39 @@ const ContactForm = ({ onContactAdded }) => {
   };
 
   const validatePhone = (phone) => {
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
+    // Remove all non-digit characters for validation
+    const digitsOnly = phone.replace(/\D/g, '');
+    
+    // Check if phone contains only valid characters (digits, spaces, hyphens, plus, parentheses, dots)
+    const validCharsRegex = /^[\d\s\-\+\(\)\.]+$/;
+    if (!validCharsRegex.test(phone)) {
+      return { isValid: false, message: 'Phone number contains invalid characters' };
+    }
+    
+    // Check minimum length (at least 10 digits for most countries)
+    if (digitsOnly.length < 10) {
+      return { isValid: false, message: 'Phone number must contain at least 10 digits' };
+    }
+    
+    // Check maximum length (max 15 digits including country code per E.164 standard)
+    if (digitsOnly.length > 15) {
+      return { isValid: false, message: 'Phone number cannot exceed 15 digits' };
+    }
+    
+    // Check if phone starts with valid international format
+    // Allow: +1, +44, etc. or just numbers
+    const hasPlus = phone.trim().startsWith('+');
+    if (hasPlus && digitsOnly.length < 10) {
+      return { isValid: false, message: 'International phone numbers must have country code' };
+    }
+    
+    // Check for common invalid patterns
+    // Reject if all digits are the same (e.g., 1111111111)
+    if (/^(\d)\1{9,}$/.test(digitsOnly)) {
+      return { isValid: false, message: 'Please enter a valid phone number' };
+    }
+    
+    return { isValid: true, message: '' };
   };
 
   const validateForm = () => {
@@ -44,8 +75,11 @@ const ContactForm = ({ onContactAdded }) => {
     // Phone validation
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number (at least 10 digits)';
+    } else {
+      const phoneValidation = validatePhone(formData.phone);
+      if (!phoneValidation.isValid) {
+        newErrors.phone = phoneValidation.message;
+      }
     }
 
     setErrors(newErrors);
@@ -115,13 +149,14 @@ const ContactForm = ({ onContactAdded }) => {
   };
 
   const isFormValid = () => {
+    const phoneValidation = formData.phone.trim() ? validatePhone(formData.phone) : { isValid: false };
     return (
       formData.name.trim() &&
       formData.name.trim().length >= 2 &&
       formData.email.trim() &&
       validateEmail(formData.email) &&
       formData.phone.trim() &&
-      validatePhone(formData.phone)
+      phoneValidation.isValid
     );
   };
 
@@ -201,8 +236,13 @@ const ContactForm = ({ onContactAdded }) => {
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-blue-500'
             }`}
-            placeholder="Enter your phone number"
+            placeholder="e.g., +1 (555) 123-4567 or 5551234567"
+            pattern="[\d\s\-\+\(\)\.]+"
+            maxLength="20"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Format: Include country code if international (e.g., +1, +44)
+          </p>
           {errors.phone && (
             <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
           )}

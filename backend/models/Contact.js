@@ -19,6 +19,36 @@ const contactSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
+      validate: {
+        validator: function(v) {
+          // Remove all non-digit characters for validation
+          const digitsOnly = v.replace(/\D/g, '');
+          
+          // Check minimum length (at least 10 digits)
+          if (digitsOnly.length < 10) {
+            return false;
+          }
+          
+          // Check maximum length (max 15 digits per E.164 standard)
+          if (digitsOnly.length > 15) {
+            return false;
+          }
+          
+          // Check for valid characters only
+          const validCharsRegex = /^[\d\s\-\+\(\)\.]+$/;
+          if (!validCharsRegex.test(v)) {
+            return false;
+          }
+          
+          // Reject if all digits are the same
+          if (/^(\d)\1{9,}$/.test(digitsOnly)) {
+            return false;
+          }
+          
+          return true;
+        },
+        message: 'Please enter a valid phone number (10-15 digits)',
+      },
     },
     message: {
       type: String,
