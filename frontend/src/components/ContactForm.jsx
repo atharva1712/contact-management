@@ -23,32 +23,24 @@ const ContactForm = ({ onContactAdded }) => {
     // Remove all non-digit characters for validation
     const digitsOnly = phone.replace(/\D/g, '');
     
-    // Check if phone contains only valid characters (digits, spaces, hyphens, plus, parentheses, dots)
-    const validCharsRegex = /^[\d\s\-\+\(\)\.]+$/;
-    if (!validCharsRegex.test(phone)) {
-      return { isValid: false, message: 'Phone number contains invalid characters' };
+    // Check if phone contains only digits (no special characters allowed)
+    const digitsOnlyRegex = /^\d+$/;
+    if (!digitsOnlyRegex.test(phone)) {
+      return { isValid: false, message: 'Phone number must contain only digits (0-9)' };
     }
     
-    // Check minimum length (at least 10 digits for most countries)
-    if (digitsOnly.length < 10) {
-      return { isValid: false, message: 'Phone number must contain at least 10 digits' };
-    }
-    
-    // Check maximum length (max 15 digits including country code per E.164 standard)
-    if (digitsOnly.length > 15) {
-      return { isValid: false, message: 'Phone number cannot exceed 15 digits' };
-    }
-    
-    // Check if phone starts with valid international format
-    // Allow: +1, +44, etc. or just numbers
-    const hasPlus = phone.trim().startsWith('+');
-    if (hasPlus && digitsOnly.length < 10) {
-      return { isValid: false, message: 'International phone numbers must have country code' };
+    // Check if exactly 10 digits
+    if (digitsOnly.length !== 10) {
+      if (digitsOnly.length < 10) {
+        return { isValid: false, message: 'Phone number must be exactly 10 digits' };
+      } else {
+        return { isValid: false, message: 'Phone number must be exactly 10 digits (no country code)' };
+      }
     }
     
     // Check for common invalid patterns
     // Reject if all digits are the same (e.g., 1111111111)
-    if (/^(\d)\1{9,}$/.test(digitsOnly)) {
+    if (/^(\d)\1{9}$/.test(digitsOnly)) {
       return { isValid: false, message: 'Please enter a valid phone number' };
     }
     
@@ -87,7 +79,16 @@ const ContactForm = ({ onContactAdded }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    
+    // For phone field, only allow digits and limit to 10 characters
+    if (name === 'phone') {
+      value = value.replace(/\D/g, ''); // Remove all non-digit characters
+      if (value.length > 10) {
+        value = value.slice(0, 10); // Limit to 10 digits
+      }
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -236,12 +237,13 @@ const ContactForm = ({ onContactAdded }) => {
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-blue-500'
             }`}
-            placeholder="e.g., +1 (555) 123-4567 or 5551234567"
-            pattern="[\d\s\-\+\(\)\.]+"
-            maxLength="20"
+            placeholder="e.g., 9876543210"
+            pattern="[0-9]{10}"
+            maxLength="10"
+            inputMode="numeric"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Format: Include country code if international (e.g., +1, +44)
+            Enter exactly 10 digits (no spaces, dashes, or country code)
           </p>
           {errors.phone && (
             <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
