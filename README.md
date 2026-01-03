@@ -4,19 +4,29 @@ A full-stack MERN (MongoDB, Express.js, React.js, Node.js) application for manag
 
 ## Features
 
+✅ **Authentication System**
+- User registration (Signup) with email validation
+- User login with JWT token authentication
+- Protected routes - contacts are user-specific
+- Secure password hashing with bcrypt
+- Automatic token management
+
 ✅ **Contact Form**
-- Name (required), Email (required with validation), Phone (required), Message (optional)
+- Name (required), Email (required with validation), Phone (exactly 10 digits), Message (optional)
 - Client-side validation with real-time error messages
 - Submit button disabled when form is invalid
 - Success notifications
 
 ✅ **Backend API**
-- POST `/api/contacts` - Create a new contact
-- GET `/api/contacts` - Fetch all contacts
-- DELETE `/api/contacts/:id` - Delete a contact
+- POST `/api/auth/signup` - Register new user
+- POST `/api/auth/login` - User login
+- GET `/api/auth/me` - Get current user (protected)
+- POST `/api/contacts` - Create a new contact (protected)
+- GET `/api/contacts` - Fetch all contacts (protected, user-specific)
+- DELETE `/api/contacts/:id` - Delete a contact (protected)
 
 ✅ **Contact Display**
-- List/table view of all contacts
+- List/table view of all contacts (only current user's contacts)
 - Dynamic updates without page reload
 - Responsive design for all devices
 
@@ -25,6 +35,7 @@ A full-stack MERN (MongoDB, Express.js, React.js, Node.js) application for manag
 - Success/error messages
 - Sorting by name or date
 - Clean, modern UI with Tailwind CSS
+- User-specific contact isolation
 
 ## Tech Stack
 
@@ -40,6 +51,8 @@ A full-stack MERN (MongoDB, Express.js, React.js, Node.js) application for manag
 - **Express.js** - Web framework
 - **MongoDB** - Database
 - **Mongoose** - ODM for MongoDB
+- **JWT** - JSON Web Tokens for authentication
+- **bcryptjs** - Password hashing
 
 ## Project Structure
 
@@ -104,7 +117,10 @@ Create a `.env` file in the `backend` directory:
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/contactapp
 NODE_ENV=development
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
 ```
+
+**Important**: Change `JWT_SECRET` to a strong random string in production!
 
 **For MongoDB Atlas (Cloud):**
 ```env
@@ -208,24 +224,36 @@ DELETE /contacts/:id
 
 ## Usage
 
-1. **Add a Contact:**
-   - Fill in the contact form (Name, Email, Phone are required)
+1. **Sign Up / Login:**
+   - First-time users: Click "Create a new account" to sign up
+   - Enter your name, email, and password (minimum 6 characters)
+   - Existing users: Enter email and password to login
+   - You'll be automatically redirected to the contact management page
+
+2. **Add a Contact:**
+   - After logging in, fill in the contact form (Name, Email, Phone are required)
+   - Phone must be exactly 10 digits (no spaces or country code)
    - Message field is optional
    - Click "Submit Contact"
    - See success message and contact added to the list
 
-2. **View Contacts:**
-   - All contacts are displayed in a table below the form
+3. **View Contacts:**
+   - All your contacts are displayed in a table below the form
+   - You can only see contacts you created
    - Contacts are sorted by date (newest first) by default
 
-3. **Sort Contacts:**
+4. **Sort Contacts:**
    - Click "Sort by Name" or "Sort by Date" buttons
    - Toggle ascending/descending order
 
-4. **Delete Contact:**
+5. **Delete Contact:**
    - Click the "Delete" button next to any contact
    - Confirm deletion in the popup
    - Contact is removed from the list
+
+6. **Logout:**
+   - Click the "Logout" button in the top right corner
+   - You'll be redirected to the login page
 
 ## Validation Rules
 

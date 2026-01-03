@@ -2,12 +2,13 @@ import Contact from '../models/Contact.js';
 
 // @desc    Create a new contact
 // @route   POST /api/contacts
-// @access  Public
+// @access  Private
 export const createContact = async (req, res) => {
   try {
     const { name, email, phone, message } = req.body;
 
     const contact = await Contact.create({
+      user: req.user.userId,
       name,
       email,
       phone,
@@ -36,10 +37,10 @@ export const createContact = async (req, res) => {
 
 // @desc    Get all contacts
 // @route   GET /api/contacts
-// @access  Public
+// @access  Private
 export const getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find().sort({ createdAt: -1 });
+    const contacts = await Contact.find({ user: req.user.userId }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       count: contacts.length,
@@ -55,7 +56,7 @@ export const getContacts = async (req, res) => {
 
 // @desc    Delete a contact
 // @route   DELETE /api/contacts/:id
-// @access  Public
+// @access  Private
 export const deleteContact = async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
@@ -64,6 +65,14 @@ export const deleteContact = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Contact not found',
+      });
+    }
+
+    // Make sure contact belongs to the user
+    if (contact.user.toString() !== req.user.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this contact',
       });
     }
 
