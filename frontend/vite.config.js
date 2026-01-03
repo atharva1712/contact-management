@@ -12,5 +12,8 @@ export default defineConfig({
       },
     },
   },
+  // Ensure Vite handles environment variables correctly
+  define: {
+    'process.env': {},
+  },
 })
-

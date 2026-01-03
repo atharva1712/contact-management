@@ -1,9 +1,12 @@
 import axios from 'axios';
 
-const API_URL = '/api/contacts';
+// Use environment variable for API URL in production, or proxy in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+const API_URL = `${API_BASE_URL}/api/contacts`;
 
 const api = axios.create({
-  baseURL: '',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
